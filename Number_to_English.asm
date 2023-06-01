@@ -133,8 +133,8 @@ processing_millions:
 	lw	$t0, millions_part
 	blt	$t0, 1, processing_thousands
 	sw	$t0, temp
-	addi $sp, $sp, -4      # Decrement the stack pointer by 4 bytes
-	sw 	$ra, 0($sp)       # Store the return address on the stack
+	addi $sp, $sp, -4     		# Decrement the stack pointer by 4 bytes
+	sw 	$ra, 0($sp)       	# Store the return address on the stack
 	jal 	print_3_digit   # Print 3 digit of this part
 	nop
 	li	$v0, 4
@@ -149,9 +149,9 @@ processing_thousands:
 	lw	$t0, thousands_part
 	blt	$t0, 1, processing_ones
 	sw	$t0, temp
-	addi $sp, $sp, -4      # Decrement the stack pointer by 4 bytes
-	sw 	$ra, 0($sp)       # Store the return address on the stack
-	jal 	print_3_digit	# Print 3 digit of this part
+	addi $sp, $sp, -4      		# Decrement the stack pointer by 4 bytes
+	sw 	$ra, 0($sp)       	# Store the return address on the stack
+	jal 	print_3_digit		# Print 3 digit of this part
 	nop
 	li	$v0, 4
 	la	$a0, thousand # Adding thousand
@@ -180,7 +180,7 @@ print_3_digit:
 	sw	$t2, temp2
 	#Print hundred	
 	addi $sp, $sp, -4     		# Decrement the stack pointer by 4 bytes
-	sw 	$ra, 0($sp)     		# Store the return address on the stack
+	sw 	$ra, 0($sp)     	# Store the return address on the stack
 	jal 	print_hundred
 	nop
 	# If "tens" and "ones" digit less than 20
@@ -252,8 +252,8 @@ print_twenty_to_ninetynine:
 	syscall
 	j return
 	
-return:					# Back to previous call
-	jr 	 $ra                     	# Jump back to the return address
+return:				# Back to previous call
+	jr 	 $ra            # Jump back to the return address
 	
 print_zero:
 	li	$v0, 4
@@ -264,7 +264,7 @@ print_zero:
 end:
 	#Prompt user to read again or exit
 	# Print a newline
-   	li $v0, 4         		# System call code for printing a string
+   	li $v0, 4         	# System call code for printing a string
    	la $a0, newline   	# Load the address of the newline string
  	syscall
 	li $v0, 4
@@ -275,7 +275,7 @@ end:
     	li $a1, 4 
     	syscall
     	# Print a newline
-   	li $v0, 4         		# System call code for printing a string
+   	li $v0, 4         	# System call code for printing a string
    	la $a0, newline   	# Load the address of the newline string
  	syscall
     	la $s0, userInput
