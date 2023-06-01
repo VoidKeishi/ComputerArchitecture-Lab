@@ -1,3 +1,5 @@
+#Pham Phan Anh - 20210039
+
 .eqv MONITOR_SCREEN 0x10010000   #Dia chi bat dau cua bo nho man hinh
 .eqv WHITE          0x00FFFFFF
 .eqv BLACK	    0x00000000

@@ -1,3 +1,5 @@
+#Pham Phan Anh - 20210039
+
 .eqv SEVENSEG_LEFT 0xFFFF0011    # Dia chi cua den led 7 doan trai. 
                               # Bit 0 = doan a;     
                               # Bit 1 = doan b; ... 
