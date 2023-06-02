@@ -60,7 +60,7 @@ SHOW_7SEG_RIGHT: li $t0, SEVENSEG_RIGHT # assign port's address
     nop
  #Delay 1s
 begin_loop:
-    li $t0, 25000   # Calculate the number of iterations for 1 second delay
+    li $t0, 1000000   # Calculate the number of iterations for 1 second delay
 loop:
     addi $t0, $t0, -1   # Decrement the loop counter
     bnez $t0, loop     # Branch back to loop if the counter is not zero
