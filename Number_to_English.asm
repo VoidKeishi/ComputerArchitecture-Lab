@@ -253,7 +253,7 @@ print_twenty_to_ninetynine:
 	j return
 	
 return:				# Back to previous call
-	jr 	 $ra            # Jump back to the return address
+	jr 	 $ra        # Jump back to the return address
 	
 print_zero:
 	li	$v0, 4
@@ -269,16 +269,16 @@ end:
  	syscall
 	li $v0, 4
    	la $a0, prompt3
-    	syscall
-    	li $v0, 8 
-    	la $a0, userInput
-    	li $a1, 4 
-    	syscall
-    	# Print a newline
+	syscall
+	li $v0, 8 
+	la $a0, userInput
+	li $a1, 4 
+	syscall
+	# Print a newline
    	li $v0, 4         	# System call code for printing a string
    	la $a0, newline   	# Load the address of the newline string
  	syscall
-    	la $s0, userInput
+	la $s0, userInput
    	la $s1, Yes
 
 compare_loop:
