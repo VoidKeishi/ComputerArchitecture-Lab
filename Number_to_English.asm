@@ -1,3 +1,4 @@
+# This program read a number from user and print it in words
 .data
 	number:     	 	 .space	12		#store input number
 	millions_part:	  	 .space	4		#store 3 digit at million part

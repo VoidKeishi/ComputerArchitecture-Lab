@@ -1,3 +1,4 @@
+# This program is to check if an assembly instruction is valid or not
 .data
     #For printing message
     prompt: .asciiz "Enter an assembly instruction(Type 'stop' if you want to exit): "
