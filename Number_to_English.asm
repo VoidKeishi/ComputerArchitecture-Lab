@@ -11,7 +11,7 @@
 	prompt3:	   .asciiz		"Do you want to continue?(Yes/No): "
 	newline:	   .asciiz		"\n"   		# Newline character
 	userInput:   .space	100    			# Buffer to store user input
-        Yes: 	   .asciiz 		"Yes"  	# "Yes" string to compare with user input
+    Yes: 	   .asciiz 		"Yes"  	# "Yes" string to compare with user input
 	space:	  .asciiz		" "
 	#For printing zero
 	zero:		  
@@ -86,7 +86,7 @@ message:
 	li	$s0, 0
 	sw	$s0, millions_part
 	sw	$s0, thousands_part
-	sw	$s0,	ones_part	
+	sw	$s0, ones_part	
  	# Prompt the user to enter a number
  	li      $v0, 4
 	la     $a0, prompt
