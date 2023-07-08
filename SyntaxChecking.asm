@@ -178,6 +178,29 @@ read_instruction:
     la $a0, input
     li $a1, 100
     syscall
+
+check_if_repeat:
+    #Load addresses of strings into registers
+    la $t0, input
+    la $t1, stop
+    #Compare strings
+    loop:
+        # Load a character from user input
+        lb $t2, ($t0)
+        # Load a character from stored string "stop"
+        lb $t3, ($t1)
+        # Compare characters, if not equal, jump to continue
+        bne $t2, $t3, check_syntax
+        # Characters are equal, check if the end of strings is reached. If reached end, jump to exit
+        beqz $t2, check_end
+        # Increment input pointer
+        addi $t0, $t0, 1
+        # Increment "stop" string pointer
+        addi $t1, $t1, 1        
+        j loop
+    check_end:
+    	beqz $t3, exit
+    
 check_syntax:
     split:
         #Extract opcode part of instruction
@@ -367,30 +390,7 @@ check_syntax:
     li $v0, 4
     la $a0, newline
     syscall
-
-check_if_repeat:
-    #Load addresses of strings into registers
-    la $t0, input
-    la $t1, stop
-    #Compare strings
-    loop:
-        # Load a character from user input
-        lb $t2, ($t0)
-        # Load a character from stored string "stop"
-        lb $t3, ($t1)
-        # Compare characters, if not equal, jump to continue
-        bne $t2, $t3, continue
-        # Characters are equal, check if the end of strings is reached. If reached end, jump to exit
-        beqz $t2, check_end
-        # Increment input pointer
-        addi $t0, $t0, 1
-        # Increment "stop" string pointer
-        addi $t1, $t1, 1        
-        j loop
-    check_end:
-    	beqz $t3, exit
-continue:
-    #Jump back to read again
+repeat:
     j read_instruction
 exit:
     li $v0, 10
