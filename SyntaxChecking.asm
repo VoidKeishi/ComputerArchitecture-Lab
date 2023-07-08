@@ -248,6 +248,14 @@ check_syntax:
             bne $t0, $t1, operand2_part_init
         skip_comma1:
             addi $s0, $s0, 1
+            lb $t0, ($s0)
+            lb $t1, ($s2)
+            bne $t0, $t1, operand2_part_init
+        skip_space_after_comma1:
+            addi $s0, $s0, 1
+            lb $t0, ($s0)
+            lb $t1, ($s2)
+            beq $t0, $t1, skip_space_after_comma1
 
         #Extract operand2 part of instruction
         operand2_part_init:
@@ -282,6 +290,14 @@ check_syntax:
             bne $t0, $t1, operand3_part_init
         skip_comma2:
             addi $s0, $s0, 1
+            lb $t0, ($s0)
+            lb $t1, ($s2)
+            bne $t0, $t1, operand3_part_init
+        skip_space_after_comma2:
+            addi $s0, $s0, 1
+            lb $t0, ($s0)
+            lb $t1, ($s2)
+            beq $t0, $t1, skip_space_after_comma2
 
         #Extract operand3 part of instruction
         operand3_part_init:
