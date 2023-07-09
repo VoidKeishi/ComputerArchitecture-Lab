@@ -15,6 +15,7 @@
     valid: .asciiz "' is valid\n"
     invalid: .asciiz "' is invalid\n"
     clock_cycles: .asciiz "Number of clock cycles: "
+    unknown_type: .asciiz "Unknown operand type\n"
     #For instruction patterns
     #"opcode","operand type","number of clock cycles"
     #x=nothing, r=register, i=immediate, l=label, s=special address, f=float register
@@ -160,6 +161,7 @@
     "trunc.w.s","ffx","1",
     "xor","rrr","1",
     "xori","rri","1"
+    type: .asciiz "x", "r", "i", "l", "s", "f"
     register: .asciiz "$zero", "$at", "$v0", "$v1", "$a0", "$a1", "$a2", "$a3", "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7", "$t8", "$t9", "$k0", "$k1", "$gp", "$sp", "$fp", "$ra"
     float: .asciiz "$f0", "$f1", "$f2", "$f3", "$f4", "$f5", "$f6", "$f7", "$f8", "$f9", "$f10", "$f11", "$f12", "$f13", "$f14", "$f15", "$f16", "$f17", "$f18", "$f19", "$f20", "$f21", "$f22", "$f23", "$f24", "$f25", "$f26", "$f27", "$f28", "$f29", "$f30", "$f31"
     immediate: .asciiz "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
@@ -221,9 +223,9 @@ check_syntax:
             lb $t1, ($s2)
             beq $t0, $t1, skip_space1
             lb $t1, ($s3)
-            beq $t0, $t1, processing
+            beq $t0, $t1, processing_opcode
             lb $t1, ($s4)
-            beq $t0, $t1, processing
+            beq $t0, $t1, processing_opcode
             #Store the character into "opcode_part" string
             sb $t0, ($s1)
             #Increment input pointer
@@ -249,9 +251,9 @@ check_syntax:
             lb $t1, ($s2)
             beq $t0, $t1, skip_space2
             lb $t1, ($s3)
-            beq $t0, $t1, processing
+            beq $t0, $t1, processing_opcode
             lb $t1, ($s4)
-            beq $t0, $t1, processing
+            beq $t0, $t1, processing_opcode
             lb $t1, ($s5)
             beq $t0, $t1, skip_comma1
             #Store the character into "operand 1 part" string
@@ -291,9 +293,9 @@ check_syntax:
             lb $t1, ($s2)
             beq $t0, $t1, skip_space3
             lb $t1, ($s3)
-            beq $t0, $t1, processing
+            beq $t0, $t1, processing_opcode
             lb $t1, ($s4)
-            beq $t0, $t1, processing
+            beq $t0, $t1, processing_opcode
             lb $t1, ($s5)
             beq $t0, $t1, skip_comma2
             #Store the character into "operand 2 part" string
@@ -333,9 +335,9 @@ check_syntax:
             lb $t1, ($s2)
             beq $t0, $t1, skip_space4
             lb $t1, ($s3)
-            beq $t0, $t1, processing
+            beq $t0, $t1, processing_opcode
             lb $t1, ($s4)
-            beq $t0, $t1, processing
+            beq $t0, $t1, processing_opcode
             #Store the character into "operand 3 part" string
             sb $t0, ($s1)
             #Increment input pointer
@@ -350,7 +352,7 @@ check_syntax:
             lb $t1, ($s2)
             beq $t0, $t1, skip_space4
 
-    processing:
+    processing_opcode:
         init_opcode:
             la $s0, opcode_part
             la $s1, instructions
@@ -401,9 +403,308 @@ check_syntax:
             li $v0, 4
             la $a0, valid
             syscall
+    processing_operand1:
+        la $s0, operand1
+        addi $s1, $s1, 1
+        lb $t1, ($s1)
+        li $s3, 1
+        jal type_check
+        nop
+    processing_operand2:
+        la $s0, operand2
+        addi $s1, $s1, 1
+        lb $t1, ($s1)
+        li $s3, 2
+        jal type_check
+        nop
+    processing_operand3:
+        la $s0, operand3
+        addi $s1, $s1, 1
+        lb $t1, ($s1)
+        li $s3, 3
+        jal type_check
+        nop
+        j number_of_cycles
+    type_check:
+        la $s2, type 
+        lb $t2, ($s2)
+        beq $t1, $t2, check_x_type
+        addi $s2, $s2, 2
+        lb $t2, ($s2)
+        beq $t1, $t2, check_r_type
+        addi $s2, $s2, 2
+        lb $t2, ($s2)
+        beq $t1, $t2, check_i_type
+        addi $s2, $s2, 2
+        lb $t2, ($s2)
+        beq $t1, $t2, check_l_type
+        addi $s2, $s2, 2
+        lb $t2, ($s2)
+        beq $t1, $t2, check_s_type
+        addi $s2, $s2, 2
+        lb $t2, ($s2)
+        beq $t1, $t2, check_f_type
+        j invalid_type
+    check_x_type:
+        addi $s2, $s0, 0
+        lb $t0, ($s2)
+        bnez $t0, invalid_operand
+        jr $ra
+    check_r_type:
+        #$s0: input operand pointer, no change
+        #$s1: stored type pointer, no change
+        #$s2: temporary input operand pointer
+        #$s3: operand number, no change
+        #$s4: register string pointer
+        init_r:
+            addi $s2, $s0, 0
+            la $s4, register
+        loop_r:
+            lb $t0, ($s2)
+            lb $t1, ($s4)
+            bne $t0, $t1, next_r
+            #If identical, point to next character
+            addi $s2, $s2, 1
+            addi $s4, $s4, 1
+            #If reach the end of input operand, jump to check_end_r
+            lb $t1, ($s4)
+            beqz $t1, check_end_r
+            j loop_r
+        next_r:
+            addi $s4, $s4, 1
+            lb $t1, ($s4)
+            bne $t1, $zero, next_r
+            addi $s4, $s4, 1
+            lb $t1, ($s4)
+            beq $t1, $zero, invalid_operand
+            addi $s2, $s0, 0
+            j loop_r
+        check_end_r:
+            lb $t0, ($s2)
+            beqz $t0, valid_operand
+            j next_r
+    check_i_type:
+        #$s0: input operand pointer, no change
+        #$s1: stored type pointer, no change
+        #$s2: temporary input operand pointer
+        #$s3: operand number, no change
+        init_i:
+            addi $s2, $s0, 0
+        loop_i:
+            lb $t0, ($s2)
+            blt $t0, '0', invalid_operand
+            bgt $t0, '9', invalid_operand
+            #If valid, point to next character
+            addi $s2, $s2, 1
+            #If reach the end of input operand, jump to check_end_r
+            lb $t0, ($s2)
+            beqz $t0, valid_operand
+            j loop_i
+    check_l_type:
+        #$s0: input operand pointer, no change
+        #$s1: stored type pointer, no change
+        #$s2: temporary input operand pointer
+        #$s3: operand number, no change
+        #$s4: register string pointer
+        init_l:
+            addi $s2, $s0, 0
+        #First character must be letter, lowercase or uppercase
+        check_first_l_uppercase:
+            lb $t0, ($s2)
+            blt $t0, 'A', invalid_operand
+            bgt $t0, 'Z', check_first_l_lowercase
+            #If valid, go to loop_l
+            add $s2, $s2, 1
+            j loop_l
+        check_first_l_lowercase:
+            blt $t0, 'a', invalid_operand
+            bgt $t0, 'z', invalid_operand
+            addi $s2, $s2, 1
+        loop_l:
+            #Check the rest of the characters
+            #Label can only contains letters, numbers, and underscores
+            lb $t0, ($s2)
+            blt $t0, '0', invalid_operand
+            bgt $t0, '9', check_l_uppercase
+            j next_l
+            check_l_uppercase:
+            blt $t0, 'A', invalid_operand
+            bgt $t0, 'Z', check_l_underscore
+            j next_l
+            check_l_underscore:
+            bne $t0, '_', check_l_lowercase
+            j next_l
+            check_l_lowercase:
+            blt $t0, 'a', invalid_operand
+            bgt $t0, 'z', invalid_operand
+            next_l:
+            #If valid, point to next character
+            addi $s2, $s2, 1
+            lb $t0, ($s2)
+            beqz $t0, valid_operand
+            j loop_l
+    check_s_type:
+        li $v0, 4
+        la $a0, type
+        addi $a0, $a0, 8
+        syscall
+        j valid_operand
+    check_f_type:
+        #$s0: input operand pointer, no change
+        #$s1: stored type pointer, no change
+        #$s2: temporary input operand pointer
+        #$s3: operand number, no change
+        #$s4: float string pointer
+        init_f:
+            addi $s2, $s0, 0
+            la $s4, float
+        loop_f:
+            lb $t0, ($s2)
+            lb $t1, ($s4)
+            bne $t0, $t1, next_f
+            #If identical, point to next character
+            addi $s2, $s2, 1
+            addi $s4, $s4, 1
+            #If reach the end of input operand, jump to check_end_r
+            lb $t1, ($s4)
+            beqz $t1, check_end_f
+            j loop_f
+        next_f:
+            addi $s4, $s4, 1
+            lb $t1, ($s4)
+            bne $t1, $zero, next_f
+            addi $s4, $s4, 1
+            lb $t1, ($s4)
+            beq $t1, $zero, invalid_operand
+            addi $s2, $s0, 0
+            j loop_f
+        check_end_f:
+            lb $t0, ($s2)
+            beqz $t0, valid_operand
+            j next_f
+    invalid_type:
+        li $v0, 4
+        la $a0, unknown_type
+        syscall
+        j repeat
+    valid_operand:
+        li $v0, 4
+        la $a0, operand
+        syscall
+        li $s4, 1
+        beq $s3, $s4, operand1_message
+        li $s4, 2
+        beq $s3, $s4, operand2_message
+        li $s4, 3
+        beq $s3, $s4, operand3_message
+        operand1_message:
+            li $v0, 4
+            la $a0, operand1
+            syscall
+            li $v0, 4
+            la $a0, valid
+            syscall
+            jr $ra
+        operand2_message:
+            li $v0, 4
+            la $a0, operand2
+            syscall
+            li $v0, 4
+            la $a0, valid
+            syscall
+            jr $ra
+        operand3_message:
+            li $v0, 4
+            la $a0, operand3
+            syscall
+            li $v0, 4
+            la $a0, valid
+            syscall
+            jr $ra
+        jr $ra
+    invalid_operand:
+        li $v0, 4
+        la $a0, operand
+        syscall
+        li $s4, 1
+        beq $s3, $s4, operand1_message_invalid
+        li $s4, 2
+        beq $s3, $s4, operand2_message_invalid
+        li $s4, 3
+        beq $s3, $s4, operand3_message_invalid
+        operand1_message_invalid:
+            li $v0, 4
+            la $a0, operand1
+            syscall
+            li $v0, 4
+            la $a0, invalid
+            syscall
             j repeat
-
+        operand2_message_invalid:
+            li $v0, 4
+            la $a0, operand2
+            syscall
+            li $v0, 4
+            la $a0, invalid
+            syscall
+            j repeat
+        operand3_message_invalid:
+            li $v0, 4
+            la $a0, operand3
+            syscall
+            li $v0, 4
+            la $a0, invalid
+            syscall
+            j repeat
+    number_of_cycles:
+        li $v0, 4
+        la $a0, clock_cycles
+        syscall
+        addi $s1, $s1, 2
+        lb $t1, ($s1)
+        li $v0, 4
+        addi $a0, $s1, 0
+        syscall
+        li $v0, 4
+        la $a0, newline
+        syscall
 repeat:
+    #Erase data in all string
+        la $s0, input
+    erase_input:
+        li $t0, 0
+        sb $t0, ($s0)
+        addi $s0, $s0, 1
+        lb $t0, ($s0)
+        bne $t0, $zero, erase_input
+    la $s0, opcode_part
+    erase_opcode:
+        li $t0, 0
+        sb $t0, ($s0)
+        addi $s0, $s0, 1
+        lb $t0, ($s0)
+        bne $t0, $zero, erase_opcode
+    la $s0, operand1
+    erase_operand1:
+        li $t0, 0
+        sb $t0, ($s0)
+        addi $s0, $s0, 1
+        lb $t0, ($s0)
+        bne $t0, $zero, erase_operand1
+    la $s0, operand2
+    erase_operand2:
+        li $t0, 0
+        sb $t0, ($s0)
+        addi $s0, $s0, 1
+        lb $t0, ($s0)
+        bne $t0, $zero, erase_operand2
+    la $s0, operand3
+    erase_operand3:
+        li $t0, 0
+        sb $t0, ($s0)
+        addi $s0, $s0, 1
+        lb $t0, ($s0)
+        bne $t0, $zero, erase_operand3
     j read_instruction
 exit:
     li $v0, 10
