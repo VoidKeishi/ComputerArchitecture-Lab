@@ -12,8 +12,8 @@
     prompt: .asciiz "Enter an assembly instruction(Type 'stop' if you want to exit): "
     opcode: .asciiz "Opcode '"
     operand: .asciiz "Operand '"
-    valid: .asciiz "' is valid"
-    invalid: .asciiz "' is invalid"
+    valid: .asciiz "' is valid\n"
+    invalid: .asciiz "' is invalid\n"
     clock_cycles: .asciiz "Number of clock cycles: "
     #For instruction patterns
     #"opcode","operand type","number of clock cycles"
@@ -349,47 +349,60 @@ check_syntax:
             lb $t0, ($s0)
             lb $t1, ($s2)
             beq $t0, $t1, skip_space4
+
     processing:
-    #Testing print
-    li $v0, 4
-    la $a0, opcode
-    syscall
-    li $v0, 4
-    la $a0, opcode_part
-    syscall
-    li $v0, 4
-    la $a0, newline
-    syscall
+        init_opcode:
+            la $s0, opcode_part
+            la $s1, instructions
+        opcode_check: 
+            lb $t0, ($s0)
+            lb $t1, ($s1)
+            #If one character is different, jump to next opcode
+            bne $t0, $t1, next_opcode
+            addi $s0, $s0, 1
+            addi $s1, $s1, 1
+            #If reach the end of input opcode part, jump to check-end-opcode
+            lb $t0, ($s0)
+            beqz $t0, check_end_opcode
+            #If okay with current character, jump to opcode_check
+            j opcode_check
+        check_end_opcode:
+            lb $t1, ($s1)
+            beqz $t1, valid_opcode
+            j next_opcode
+        next_opcode:
+            #Skip current opcode
+            addi $s1, $s1, 1
+            lb $t1, ($s1)
+            bne $t1, $zero, next_opcode
+            addi $s1, $s1, 7
+            lb $t1, ($s1)
+            beq $t1, $zero, invalid_opcode
+            la $s0, opcode_part
+            j opcode_check
+        invalid_opcode: 
+            li $v0, 4
+            la $a0, opcode
+            syscall
+            li $v0, 4
+            la $a0, opcode_part
+            syscall
+            li $v0, 4
+            la $a0, invalid
+            syscall
+            j repeat
+        valid_opcode:
+            li $v0, 4
+            la $a0, opcode
+            syscall
+            li $v0, 4
+            la $a0, opcode_part
+            syscall
+            li $v0, 4
+            la $a0, valid
+            syscall
+            j repeat
 
-    li $v0, 4
-    la $a0, operand
-    syscall
-    li $v0, 4
-    la $a0, operand1
-    syscall
-    li $v0, 4
-    la $a0, newline
-    syscall
-
-    li $v0, 4
-    la $a0, operand
-    syscall
-    li $v0, 4
-    la $a0, operand2
-    syscall
-    li $v0, 4
-    la $a0, newline
-    syscall
-
-    li $v0, 4
-    la $a0, operand
-    syscall
-    li $v0, 4
-    la $a0, operand3
-    syscall
-    li $v0, 4
-    la $a0, newline
-    syscall
 repeat:
     j read_instruction
 exit:
