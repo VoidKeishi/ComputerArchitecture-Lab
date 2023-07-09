@@ -490,6 +490,12 @@ check_syntax:
         #$s3: operand number, no change
         init_i:
             addi $s2, $s0, 0
+        #Check first character, could be '-' or digit
+        first_character_i:
+            lb $t0, ($s2)
+            bne $t0, '-', loop_i
+            #If '-', point to next character
+            addi $s2, $s2, 1
         loop_i:
             lb $t0, ($s2)
             blt $t0, '0', invalid_operand
@@ -505,7 +511,6 @@ check_syntax:
         #$s1: stored type pointer, no change
         #$s2: temporary input operand pointer
         #$s3: operand number, no change
-        #$s4: register string pointer
         init_l:
             addi $s2, $s0, 0
         #First character must be letter, lowercase or uppercase
@@ -544,11 +549,64 @@ check_syntax:
             beqz $t0, valid_operand
             j loop_l
     check_s_type:
-        li $v0, 4
-        la $a0, type
-        addi $a0, $a0, 8
-        syscall
-        j valid_operand
+        #$s0: input operand pointer, no change
+        #$s1: stored type pointer, no change
+        #$s2: temporary input operand pointer
+        #$s3: operand number, no change
+        init_s:
+            addi $s2, $s0, 0
+        #Structure : {number}({register})
+        #Check first character, could be '-' or digit
+        first_character_s:
+            lb $t0, ($s2)
+            bne $t0, '-', atleast_one_digit_s
+            #If '-', point to next character
+            addi $s2, $s2, 1
+        atleast_one_digit_s:
+            lb $t0, ($s2)
+            blt $t0, '0', invalid_operand
+            bgt $t0, '9', invalid_operand
+            #If valid, point to next character
+            addi $s2, $s2, 1
+        loop_s_i:
+            lb $t0, ($s2)
+            beq $t0, '(', init_s_r
+            blt $t0, '0', invalid_operand
+            bgt $t0, '9', invalid_operand
+            #If valid, point to next character
+            addi $s2, $s2, 1
+            #If reach the end of input operand, jump to check_end_r
+            lb $t0, ($s2)
+            beqz $t0, valid_operand
+            j loop_s_i
+        #Check register
+        init_s_r:
+            addi $s2, $s2, 1
+            la $s4, register
+        loop_s_r:
+            lb $t0, ($s2)
+            lb $t1, ($s4)
+            bne $t0, $t1, next_s_r
+            #If identical, point to next character
+            addi $s2, $s2, 1
+            addi $s4, $s4, 1
+            #If reach the end of input operand, jump to check_end_r
+            lb $t0, ($s2)
+            beq $t0, ')', check_end_s_r
+            j loop_s_r
+        next_s_r:
+            addi $s4, $s4, 1
+            lb $t1, ($s4)
+            bne $t1, $zero, next_s_r
+            addi $s4, $s4, 1
+            lb $t1, ($s4)
+            beq $t1, $zero, invalid_operand
+            addi $s2, $s0, 0
+            j loop_s_r
+        check_end_s_r:
+            lb $t1, ($s4)
+            beqz $t1, valid_operand
+            j next_r
     check_f_type:
         #$s0: input operand pointer, no change
         #$s1: stored type pointer, no change

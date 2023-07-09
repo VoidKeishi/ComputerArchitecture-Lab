@@ -2,6 +2,8 @@ valid:
 addi $s1,$s2,100
 floor.w.s $f1,$f2
 beq $t1, $t2, label_1
+sdc1 $t1, 100($t2)
 invalid:
 beq $t1, $t2, 1abc
 beq $t1, $t2, a12$
+swr $t1, 100($ac)
