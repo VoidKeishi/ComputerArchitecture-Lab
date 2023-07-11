@@ -582,6 +582,8 @@ check_syntax:
         #Check register
         init_s_r:
             addi $s2, $s2, 1
+            #Check point for register part of the address
+            addi $s5, $s2, 0
             la $s4, register
         loop_s_r:
             lb $t0, ($s2)
@@ -601,7 +603,7 @@ check_syntax:
             addi $s4, $s4, 1
             lb $t1, ($s4)
             beq $t1, $zero, invalid_operand
-            addi $s2, $s0, 0
+            addi $s2, $s5, 0
             j loop_s_r
         check_end_s_r:
             lb $t1, ($s4)
