@@ -363,20 +363,30 @@ check_syntax:
             bne $t0, $t1, next_opcode
             addi $s0, $s0, 1
             addi $s1, $s1, 1
-            #If reach the end of input opcode part, jump to check-end-opcode
+            #If reach the end of input opcode part, jump to check-end-opcode-stored
             lb $t0, ($s0)
-            beqz $t0, check_end_opcode
+            beqz $t0, check_end_opcode_stored
+            #If reach the end of stored opcode, jump to check-end-opcode-input
+            lb $t1, ($s1)
+            beqz $t1, check_end_opcode_input
             #If okay with current character, jump to opcode_check
             j opcode_check
-        check_end_opcode:
+        check_end_opcode_input:
+            lb $t0, ($s0)
+            beqz $t0, valid_opcode
+            j next_opcode
+        check_end_opcode_stored:
             lb $t1, ($s1)
             beqz $t1, valid_opcode
             j next_opcode
         next_opcode:
             #Skip current opcode
+            lb $t1, ($s1)
+            beqz $t1, skip_operand_and_cycle
             addi $s1, $s1, 1
             lb $t1, ($s1)
             bne $t1, $zero, next_opcode
+        skip_operand_and_cycle:
             addi $s1, $s1, 7
             lb $t1, ($s1)
             beq $t1, $zero, invalid_opcode
