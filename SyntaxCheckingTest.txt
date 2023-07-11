@@ -9,3 +9,4 @@ invalid:
 beq $t1, $t2, 1abc
 beq $t1, $t2, a12$
 swr $t1, 100($ac)
+addi $s1, $s2, $s3
