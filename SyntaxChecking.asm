@@ -740,42 +740,29 @@ check_syntax:
         syscall
 repeat:
     #Erase data in all string
-        la $s0, input
-    erase_input:
-        li $t0, 0
-        sb $t0, ($s0)
-        addi $s0, $s0, 1
-        lb $t0, ($s0)
-        bne $t0, $zero, erase_input
+    la $s0, input
+    jal erase_data
+    nop
     la $s0, opcode_part
-    erase_opcode:
-        li $t0, 0
-        sb $t0, ($s0)
-        addi $s0, $s0, 1
-        lb $t0, ($s0)
-        bne $t0, $zero, erase_opcode
+    jal erase_data
+    nop
     la $s0, operand1
-    erase_operand1:
-        li $t0, 0
-        sb $t0, ($s0)
-        addi $s0, $s0, 1
-        lb $t0, ($s0)
-        bne $t0, $zero, erase_operand1
+    jal erase_data
+    nop
     la $s0, operand2
-    erase_operand2:
-        li $t0, 0
-        sb $t0, ($s0)
-        addi $s0, $s0, 1
-        lb $t0, ($s0)
-        bne $t0, $zero, erase_operand2
+    jal erase_data
+    nop
     la $s0, operand3
-    erase_operand3:
+    jal erase_data
+    nop
+    j read_instruction
+    erase_data:
         li $t0, 0
         sb $t0, ($s0)
         addi $s0, $s0, 1
         lb $t0, ($s0)
-        bne $t0, $zero, erase_operand3
-    j read_instruction
+        bne $t0, $zero, erase_data
+        jr $ra
 exit:
     li $v0, 10
     syscall
